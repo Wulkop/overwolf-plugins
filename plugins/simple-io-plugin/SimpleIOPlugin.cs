@@ -162,6 +162,61 @@ namespace overwolf.plugins.simpleio {
         callback(string.Format("error: ", ex.ToString()));
       }
     }
+    public void moveFile(string basePath, string srcFileName, string dstDir, Action<object, object> callback)
+    {
+        if (callback == null)
+            return;
+
+        if (basePath == null || srcFileName == null || dstDir == null)
+        {
+            callback(false, "Input arguments are invalid");
+            return;
+        }
+        try
+        {
+
+            Task.Run(() =>
+            {
+                
+                basePath = basePath.Replace('/', '\\');
+                
+                if (basePath.StartsWith("\\"))
+                {
+                    basePath = basePath.Remove(0, 1);
+                }
+                string srcPath = Path.Combine(basePath, srcFileName);
+                dstDir = Path.Combine(basePath, dstDir);
+
+                try
+                {
+                    FileInfo srcFileInfo = new FileInfo(srcPath);
+
+                    if (srcFileInfo == null || !srcFileInfo.Exists)
+                    {
+                        callback(false, "Source file does not exist");
+                    }
+
+                    if (!Directory.Exists(dstDir))
+                    {
+                        Directory.CreateDirectory(dstDir);
+                    }
+
+                    File.Move(srcPath, Path.Combine(dstDir, srcFileName));
+
+                    callback(true, "File moved successfully");
+                }
+                catch (Exception ex)
+                {
+                    callback(false, ex.Message);
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            callback(false, ex.Message);
+        }
+
+    }
 
     public void writeLocalAppDataFile(string path, string content, Action<object, object> callback) {
       if (callback == null)
@@ -198,7 +253,7 @@ namespace overwolf.plugins.simpleio {
       }
     }
 
-    public void getLatestFileInDirectory(string path, Action<object, object> callback) {
+    public void getLatestFileInDirectory(string path, Action<object, object, object> callback) {
       if (callback == null)
         return;
 
@@ -209,7 +264,7 @@ namespace overwolf.plugins.simpleio {
             var folder = path;
 
             if (!NormalizePathWithFilePattern(path, out filePattern, out  folder)) {
-              callback(false, "folder not found");
+              callback(false, "folder not found", 0);
               return;
             }
 
@@ -218,18 +273,18 @@ namespace overwolf.plugins.simpleio {
                        .FirstOrDefault();
 
             if (lastFile == null) {
-              callback(false, "no file in directory");
+              callback(false, "no file in directory", 0);
             } else {
-              callback(true, new FileInfo(lastFile).Name);
+              callback(true, new FileInfo(lastFile).Name, new FileInfo(lastFile).LastWriteTime.ToUniversalTime().Subtract(new DateTime(1970, 1,1)).TotalSeconds);
             }
 
           } catch (Exception ex) {
-            callback(false, string.Format("unknown error: ", ex.ToString()));
+            callback(false, string.Format("unknown error: ", ex.ToString()), 0);
           }
         });
 
       } catch (Exception ex) {
-        callback(false, string.Format("unknown error: ", ex.ToString()));
+        callback(false, string.Format("unknown error: ", ex.ToString()), 0);
       }
     }
 
