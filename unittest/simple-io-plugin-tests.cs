@@ -28,12 +28,12 @@ namespace overwolf.plugins.unittest {
       }));
 
       var folder = _plugn.PROGRAMFILES + "/overwolf";
-      _plugn.getLatestFileInDirectory(folder, new Action<object, object>((x, y) => {
+      _plugn.getLatestFileInDirectory(folder, new Action<object, object, object>((x, y, z) => {
 
       }));
 
 
-      _plugn.getLatestFileInDirectory(folder + "/*.msi", new Action<object, object>((x, y) => {
+      _plugn.getLatestFileInDirectory(folder + "/*.msi", new Action<object, object, object>((x, y, z) => {
 
       }));
 
